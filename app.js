@@ -8,10 +8,16 @@ const app = express();
 
 app.set('view engine', 'ejs');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost:27017/todolistDB", {useNewUrlParser: true});
+// Initialize mongoose and disable deprecation warnings
+mongoose.set('useUnifiedTopology', true);
+mongoose.connect("mongodb://localhost:27017/todolistDB", {
+  useNewUrlParser: true
+});
 
 const itemsSchema = {
   name: String
@@ -19,35 +25,49 @@ const itemsSchema = {
 
 const Item = mongoose.model("Item", itemsSchema);
 
-const item1 = new Item ({
-  name: "Wake up"
+// Set up default items
+const item1 = new Item({
+  name: "Here is today's To-Do List"
 });
 
-const item2 = new Item ({
-  name: "Do stuff"
+const item2 = new Item({
+  name: "Hit the + to add an item to the list"
 });
 
-const item3 = new Item ({
-  name: "Go to sleep"
+const item3 = new Item({
+  name: "Check off an item to remove it from the list"
 });
 
 const defaultItems = [item1, item2, item3];
 
-Item.insertMany(defaultItems, function(err){
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("Successfully saved default items");
-  }
-})
+
 
 app.get("/", function(req, res) {
 
-  res.render("list", {listTitle: "Today", newListItems: items});
+  // Check for default items and add them if this is the first time the list is run
+  Item.find({}, function(err, foundItems) {
+
+    if (foundItems.length === 0) {
+      Item.insertMany(defaultItems, function(err) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("Successfully saved default items");
+        }
+      });
+      res.redirect("/");
+    } else {
+      res.render("list", {
+        listTitle: "Today",
+        newListItems: foundItems
+      });
+    }
+  });
+
 
 });
 
-app.post("/", function(req, res){
+app.post("/", function(req, res) {
 
   const item = req.body.newItem;
 
@@ -60,11 +80,14 @@ app.post("/", function(req, res){
   }
 });
 
-app.get("/work", function(req,res){
-  res.render("list", {listTitle: "Work List", newListItems: workItems});
+app.get("/work", function(req, res) {
+  res.render("list", {
+    listTitle: "Work List",
+    newListItems: workItems
+  });
 });
 
-app.get("/about", function(req, res){
+app.get("/about", function(req, res) {
   res.render("about");
 });
 

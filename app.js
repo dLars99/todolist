@@ -3,6 +3,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const _ = require("lodash");
 
 const app = express();
 
@@ -40,6 +41,12 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
+const listSchema = {
+  name: String,
+  items: [itemsSchema]
+};
+
+const List = mongoose.model("List", listSchema);
 
 
 app.get("/", function(req, res) {
@@ -70,30 +77,75 @@ app.get("/", function(req, res) {
 app.post("/", function(req, res) {
 
   const itemName = req.body.newItem;
+  const listName = req.body.list;
   const listEntry = new Item({
       name: itemName
   });
 
-  listEntry.save();
+  // Post new item to the appropriate list
+  if (listName === "Today") {
 
-  res.redirect("/");
+    listEntry.save();
+    res.redirect("/");
+
+  } else {
+
+    List.findOne({name: listName}, function(err, foundList){
+      foundList.items.push(listEntry);
+      foundList.save();
+      res.redirect("/" + listName);
+    });
+
+  };
+
 });
 
 app.post("/delete", function(req, res){
   const checkedItemId = req.body.checkbox;
+  const listName = req.body.listName;
+
+  if (listName === "Today") {
   Item.findByIdAndRemove(checkedItemId, function(err){
     if (!err) {
       console.log("Successfully removed checked item");
       res.redirect("/");
     };
   });
+} else {
+  List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
+    if (!err) {
+      res.redirect("/" + listName);
+    };
+  });
+};
 });
 
-app.get("/work", function(req, res) {
-  res.render("list", {
-    listTitle: "Work List",
-    newListItems: workItems
+app.get("/:listTitle", function(req, res) {
+  const customListName = _.capitalize(req.params.listTitle);
+
+  List.findOne({name: customListName}, function(err, foundList){
+    if (!err) {
+
+      if (!foundList) {
+
+        // Create a new list
+        const list = new List({
+          name: customListName,
+          items: defaultItems
+        });
+        res.redirect("/" + customListName);
+        list.save();
+      } else {
+
+        // Show an existing list
+        res.render("list", {listTitle: foundList.name,
+        newListItems: foundList.items})
+      };
+
+    };
   });
+
+
 });
 
 app.get("/about", function(req, res) {

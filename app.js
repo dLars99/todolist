@@ -15,8 +15,11 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 
 // Initialize mongoose and disable deprecation warnings
+const databaseURL = process.env.database_URL;
+
 mongoose.set('useUnifiedTopology', true);
-mongoose.connect("mongodb://localhost:27017/todolistDB", {
+mongoose.set('useFindAndModify', false);
+mongoose.connect(databaseURL, {
   useNewUrlParser: true
 });
 
@@ -140,18 +143,15 @@ app.get("/:listTitle", function(req, res) {
         // Show an existing list
         res.render("list", {listTitle: foundList.name,
         newListItems: foundList.items})
-      };
+      }
 
-    };
+    }
   });
 
 
 });
 
-app.get("/about", function(req, res) {
-  res.render("about");
-});
-
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+// Establish Heroku port or local port
+app.listen(process.env.PORT || 3000, function() {
+  console.log("Server is running on designated port");
 });

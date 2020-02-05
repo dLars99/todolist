@@ -1,18 +1,32 @@
 {
-  "name": "todolist-v1",
+  "name": "todolist-v2",
   "version": "1.0.0",
-  "description": "",
+  "description": "A todolist used for learning EJS and, later, database/persistence",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "David P. Larsen",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.3",
     "ejs": "^2.6.1",
-    "express": "^4.16.3",
+    "express": "^4.17.1",
     "lodash": "^4.17.15",
     "mongoose": "^5.8.7"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dLars99/todolist.git"
+  },
+  "engines": {
+    "node": "12.14.1",
+    "npm": "6.13.7"
+  },
+  "bugs": {
+    "url": "https://github.com/dLars99/todolist/issues"
+  },
+  "homepage": "https://github.com/dLars99/todolist#readme"
 }
